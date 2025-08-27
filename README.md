@@ -38,11 +38,10 @@ The workflow reads the raw `.tsv` file, cleans and normalizes the fields, and ou
 ├── R/
 │   └── dship_to_event.R      # Main script
 ├── data/
-│   ├── raw/                  # Input DSHIP TSVs (not tracked by default)
 │   └── processed/            # Output tables (station.txt, event.txt)
 ├── renv/                     # renv library folder
 ├── renv.lock                 # Reproducible package versions
-├── README.md                 # Documentation (this file)
+└── README.md                 # Documentation (this file)
 ```
 
 ## Getting Started
