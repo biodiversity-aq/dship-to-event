@@ -1,6 +1,6 @@
 # DSHIP to Darwin Core Event
 
-This repository provides an R workflow to transform [DSHIP](https://www.awi.de/nc/en/expedition/ships/polarstern.html) station/event metadata exports (TSV format) into a **Darwin Core Event** table, following the [Darwin Core Event Core (2024-02-19)](https://rs.gbif.org/core/dwc_event_2024-02-19.xml) standard.
+This repository provides an R workflow to transform [DSHIP](https://spaces.awi.de/spaces/EFPW/pages/324149323/DSHIP-System) station/event metadata exports (TSV format) into a **Darwin Core Event** table, following the [Darwin Core Event Core (2024-02-19)](https://rs.gbif.org/core/dwc_event_2024-02-19.xml) standard.
 
 The workflow reads the raw `.tsv` file, cleans and normalizes the fields, and outputs two processed tables:
 
