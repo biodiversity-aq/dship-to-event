@@ -245,3 +245,4 @@ write_tsv(station, here::here("data", "processed", "station.txt"), na = "")
 out_path <- here::here("data", "processed", "event.txt")
 readr::write_tsv(events, out_path, na = "")
 message("Wrote Darwin Core Event to ", out_path)
+
