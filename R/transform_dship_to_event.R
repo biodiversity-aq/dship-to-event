@@ -9,7 +9,7 @@ library(obistools)
 
 
 # ---- Read raw TSV -----------------------------------------------------------
-url  <- "https://o2a-data.de/static/events/PS149.tsv"
+url  <- Sys.getenv("O2A_EXPORT")
 
 # Read as Latin-1 (so special chars don’t break) 
 lines_latin1 <- read_lines(url, locale = locale(encoding = "windows-1252"))
