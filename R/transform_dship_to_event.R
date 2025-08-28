@@ -233,12 +233,12 @@ events <- df_time %>%
   left_join(df_depths,   by = "eventID") %>%
   left_join(df_meta,     by = "eventID") %>%
   select(eventID, eventType, device, device_operation_label, device_operation_subdevices, device_operation_devicetypes, sensor_id,
-         start_date, end_date, start_time, end_time, start_depth_m, end_depth_m, eventDate, eventTime,
+         start_date, end_date, start_time, end_time, lat_start, lon_start, lat_end, lon_end, start_depth_m, end_depth_m, eventDate, eventTime,
          decimalLatitude, decimalLongitude, coordinateUncertaintyInMeters, footprintWKT) 
 
 station <- events %>% select(
   eventID, eventType, device, device_operation_label, device_operation_subdevices, device_operation_devicetypes, 
-  start_date, end_date, start_time, end_time, start_depth_m, end_depth_m)
+  start_date, end_date, start_time, end_time, lat_start, lon_start, lat_end, lon_end, start_depth_m, end_depth_m)
 
 # ---- Write out --------------------------------------------------------------
 write_tsv(station, here::here("data", "processed", "station.txt"), na = "")
