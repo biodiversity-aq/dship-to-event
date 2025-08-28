@@ -122,35 +122,36 @@ df_pairs <- df_actions %>%
 df_time <- df_pairs %>%
   # ensure POSIXct in UTC
   mutate(
-    start_time = with_tz(start_time, "UTC"),
-    end_time   = with_tz(end_time, "UTC"),
-    same_day   = as_date(start_time) == as_date(end_time)
-  ) %>%
-  mutate(
+    start_timestamp = with_tz(start_time, "UTC"),
+    end_timestamp   = with_tz(end_time, "UTC"),
+    start_time = strftime(start_timestamp, "%H:%M:%S"),
+    end_time   = strftime(end_timestamp,   "%H:%M:%S"),
+    same_day   = as_date(start_timestamp) == as_date(end_timestamp),
+    start_date = format(as_date(start_timestamp), "%Y-%m-%d"),
+    end_date = format(as_date(end_timestamp), "%Y-%m-%d"),
     eventDate = if_else(
       same_day,
       # same day → date only
-      format(as_date(start_time), "%Y-%m-%d"),
+      start_date,
       # spans days → full datetime range with Z
       paste0(
-        strftime(start_time, "%Y-%m-%dT%H:%M:%SZ"),
+        strftime(start_timestamp, "%Y-%m-%dT%H:%M:%SZ"),
         "/",
-        strftime(end_time,   "%Y-%m-%dT%H:%M:%SZ")
+        strftime(end_timestamp, "%Y-%m-%dT%H:%M:%SZ")
       )
     ),
     eventTime = if_else(
       same_day,
       # same day → time range only
+      # TODO: consider adding "Z" to times?
       paste0(
-        strftime(start_time, "%H:%M:%SZ"),
-        "/",
-        strftime(end_time,   "%H:%M:%SZ")
+        start_time, "/", end_time
       ),
       # spans days → blank
       NA_character_
     )
   ) %>%
-  select(eventID, eventType, eventDate, eventTime)
+  select(eventID, eventType, start_date, end_date, start_time, end_time, eventDate, eventTime)
 
 # 3) Geometry: footprintWKT, centroid, uncertainty ----------------------------
 df_geometry_inputs <- df_pairs %>%
@@ -169,7 +170,7 @@ df_geometry_inputs <- df_pairs %>%
     lat_start, lon_start, lat_end, lon_end,
     footprintWKT,
     same_point
-  ) 
+  )
 
 # Use obistools::calculate_centroid() where we have a LINESTRING; else handle point/NA
 df_geometry <- df_geometry_inputs %>%
@@ -198,14 +199,14 @@ df_geometry <- df_geometry_inputs %>%
     decimalLatitude  = format(round(decimalLatitude, 4), nsmall = 4),  # 4 decimal places
     decimalLongitude = format(round(decimalLongitude, 4), nsmall = 4),
     coordinateUncertaintyInMeters = round(coordinateUncertaintyInMeters, 0)  # integers
-  ) %>%
-  select(
-    eventID,
-    decimalLatitude,
-    decimalLongitude,
-    coordinateUncertaintyInMeters,
-    footprintWKT
-  )
+  ) # %>%
+  # select(
+  #   eventID,
+  #   decimalLatitude,
+  #   decimalLongitude,
+  #   coordinateUncertaintyInMeters,
+  #   footprintWKT
+  # )
 
 # 4) Depths only ---------------------------------------------------------------
 df_depths <- df_pairs %>%
@@ -230,11 +231,17 @@ df_meta <- df_pairs %>%
 events <- df_time %>%
   left_join(df_geometry, by = "eventID") %>%
   left_join(df_depths,   by = "eventID") %>%
-  left_join(df_meta,     by = "eventID")
+  left_join(df_meta,     by = "eventID") %>%
+  select(eventID, eventType, device, device_operation_label, device_operation_subdevices, device_operation_devicetypes, sensor_id,
+         start_date, end_date, start_time, end_time, start_depth_m, end_depth_m, eventDate, eventTime,
+         decimalLatitude, decimalLongitude, coordinateUncertaintyInMeters, footprintWKT) 
 
-# events now contains the final table
-events
+station <- events %>% select(
+  eventID, eventType, device, device_operation_label, device_operation_subdevices, device_operation_devicetypes, 
+  start_date, end_date, start_time, end_time, start_depth_m, end_depth_m)
+
 # ---- Write out --------------------------------------------------------------
+write_tsv(station, here::here("data", "processed", "station.txt"), na = "")
 out_path <- here::here("data", "processed", "event.txt")
 readr::write_tsv(events, out_path, na = "")
 message("Wrote Darwin Core Event to ", out_path)
