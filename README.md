@@ -4,7 +4,7 @@ This repository provides an R workflow to transform [DSHIP](https://spaces.awi.d
 
 The workflow reads the raw `.tsv` file, cleans and normalizes the fields, and outputs two processed tables:
 
--   **`station.txt`** — simplified station information (DSHIP actions).\
+-   **`station.txt`** — simplified station information (DSHIP actions).
 -   **`event.txt`** — Darwin Core Event table, including event timing, geometry, depth, and metadata.
 
 ------------------------------------------------------------------------
