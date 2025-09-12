@@ -3,8 +3,8 @@ name: Transform DSHIP to Event Data
 
 'on':
   schedule:
-    # Run every 10 minutes
-    - cron: '*/10 * * * *'
+    # Run every 20 minutes
+    - cron: '*/20 * * * *'
   workflow_dispatch: true  # Allow manual triggering
 
 jobs:
