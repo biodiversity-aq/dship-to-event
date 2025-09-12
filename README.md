@@ -6,8 +6,10 @@ This repository provides an R workflow to transform [DSHIP](https://spaces.awi.d
 ## Repository Structure
 
 ```         
+├── .github/
+│   └── workflows/            # GitHub Actions workflows
 ├── R/
-│   └── dship_to_event.R      # Main script
+│   └── transform_dship_to_event.R  # Main transformation script
 ├── data/
 │   └── processed/            # Output tables (station.txt, event.txt)
 ├── renv/                     # renv library folder
@@ -30,8 +32,29 @@ renv::restore()
 4.  Run the script:
 
 ``` r
-source("R/dship_to_event.R")
+source("R/transform_dship_to_event.R")
 ```
+
+## Automated Processing
+
+This repository includes a GitHub Action that automatically runs the transformation script every 10 minutes. The workflow:
+
+1. Sets up the R environment with the correct version (4.5.1)
+2. Restores the renv package environment
+3. Runs the transformation script using the `O2A_EXPORT` environment variable
+4. Commits and pushes any changes to the processed data files
+
+### Configuration
+
+The GitHub Action requires the `O2A_EXPORT` variable to be set in the repository variables. This should contain the URL to the DSHIP data export.
+
+To configure this:
+1. Go to your repository Settings → Secrets and variables → Actions
+2. Add a new repository variable named `O2A_EXPORT` with the appropriate URL value
+
+### Manual Execution
+
+You can also manually trigger the workflow from the Actions tab in GitHub, or run the script locally as described above.
 
 ## Notes & Assumptions
 
