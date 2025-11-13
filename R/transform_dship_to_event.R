@@ -26,28 +26,7 @@ df <- read_tsv(I(fixed_lines), col_types = cols(.default = col_guess()), locale 
   clean_names()
 
 # ---- Write out station information ------------------------------------------
-# station information for stations with science_activity_number > 0
-df_station <- df %>%
-  filter(science_activity_number > 0) %>%
-  select(device_operation,
-         device,
-         action,
-         action_comment,
-         device_operation_label,
-         event_time,
-         latitude_deg,
-         longitude_deg,
-         depth_m,
-         sensor_id,
-         speed_kn,
-         wind_dir,
-         wind_velocity,
-         device_operation_subdevices,
-         device_operation_devicetypes,
-         device_comment,
-         event_comment)
-
-write_tsv(df_station, here::here("data", "processed", "station.txt"), na = "")
+# Note: station.txt will be written at the end from the 'events' dataframe to avoid duplicate processing
 
 # ---- Transform to Darwin Core Event ----------------------------------------
 # 0) Minimal columns we need early on ----------------------------------------
@@ -172,40 +151,46 @@ df_geometry_inputs <- df_pairs %>%
   )
 
 # Use obistools::calculate_centroid() where we have a LINESTRING; else handle point/NA
+# Optimized: process in groups rather than row-by-row for better performance
 df_geometry <- df_geometry_inputs %>%
-  rowwise() %>%
   mutate(
-    centroid_list = list({
-      if (!is.na(footprintWKT)) {
-        out <- try(calculate_centroid(footprintWKT), silent = TRUE)
-        if (inherits(out, "try-error")) {
-          tibble(decimalLongitude = NA_real_, decimalLatitude = NA_real_, coordinateUncertaintyInMeters = NA_real_)
-        } else {
-          out
-        }
-      } else if (isTRUE(same_point)) {
-        tibble(decimalLongitude = lon_start,
-               decimalLatitude  = lat_start,
-               coordinateUncertaintyInMeters = 0)
-      } else {
-        tibble(decimalLongitude = NA_real_, decimalLatitude = NA_real_, coordinateUncertaintyInMeters = NA_real_)
-      }
-    })
-  ) %>%
-  ungroup() %>%
-  tidyr::unnest(centroid_list) %>%
+    # Pre-calculate which rows need centroid calculation
+    needs_centroid = !is.na(footprintWKT),
+    # Initialize result columns
+    decimalLongitude = NA_real_,
+    decimalLatitude = NA_real_,
+    coordinateUncertaintyInMeters = NA_real_
+  )
+
+# Process rows with same_point (fastest case)
+same_point_rows <- which(df_geometry$same_point & is.na(df_geometry$footprintWKT))
+if (length(same_point_rows) > 0) {
+  df_geometry$decimalLongitude[same_point_rows] <- as.numeric(df_geometry$lon_start[same_point_rows])
+  df_geometry$decimalLatitude[same_point_rows] <- as.numeric(df_geometry$lat_start[same_point_rows])
+  df_geometry$coordinateUncertaintyInMeters[same_point_rows] <- 0
+}
+
+# Process rows that need centroid calculation
+centroid_rows <- which(df_geometry$needs_centroid)
+if (length(centroid_rows) > 0) {
+  for (i in centroid_rows) {
+    out <- try(calculate_centroid(df_geometry$footprintWKT[i]), silent = TRUE)
+    if (!inherits(out, "try-error") && nrow(out) > 0) {
+      df_geometry$decimalLongitude[i] <- out$decimalLongitude[1]
+      df_geometry$decimalLatitude[i] <- out$decimalLatitude[1]
+      df_geometry$coordinateUncertaintyInMeters[i] <- out$coordinateUncertaintyInMeters[1]
+    }
+  }
+}
+
+# Format coordinates
+df_geometry <- df_geometry %>%
   mutate(
     decimalLatitude  = format(round(decimalLatitude, 4), nsmall = 4),  # 4 decimal places
     decimalLongitude = format(round(decimalLongitude, 4), nsmall = 4),
     coordinateUncertaintyInMeters = round(coordinateUncertaintyInMeters, 0)  # integers
-  ) # %>%
-  # select(
-  #   eventID,
-  #   decimalLatitude,
-  #   decimalLongitude,
-  #   coordinateUncertaintyInMeters,
-  #   footprintWKT
-  # )
+  ) %>%
+  select(-needs_centroid)
 
 # 4) Depths only ---------------------------------------------------------------
 df_depths <- df_pairs %>%
