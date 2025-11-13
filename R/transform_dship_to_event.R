@@ -1,12 +1,10 @@
-library(tidyverse)
-library(here)
-library(readr)
-library(stringr)
-library(janitor)
-library(lubridate)
-library(glue)
-library(obistools)
-
+library(dplyr)      
+library(readr)      
+library(stringr)   
+library(lubridate)  
+library(glue)       
+library(here)       
+library(obistools) 
 
 # ---- Read raw TSV -----------------------------------------------------------
 url  <- Sys.getenv("O2A_EXPORT")
