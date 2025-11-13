@@ -51,9 +51,9 @@ jobs:
         shell: Rscript {0}
         run: |
           if (!requireNamespace("renv", quietly = TRUE)) {
-            install.packages("renv")
+            install.packages("renv", repos = "https://cloud.r-project.org")
           }
-          renv::restore()
+          renv::restore(prompt = FALSE)
 
       - name: Run DSHIP transformation script
         shell: Rscript {0}
