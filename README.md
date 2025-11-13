@@ -37,12 +37,19 @@ source("R/transform_dship_to_event.R")
 
 ## Automated Processing
 
-This repository includes a GitHub Action that automatically runs the transformation script every 10 minutes. The workflow:
+This repository includes a GitHub Action that automatically runs the transformation script every 20 minutes. The workflow:
 
 1. Sets up the R environment with the correct version (4.5.1)
-2. Restores the renv package environment
+2. Restores the renv package environment (cached for faster execution)
 3. Runs the transformation script using the `O2A_EXPORT` environment variable
 4. Commits and pushes any changes to the processed data files
+
+### Performance Optimization
+
+The workflow uses caching to avoid recreating the R environment on every run:
+- **R packages**: Both the global renv cache (`~/.local/share/renv`) and project-specific library (`renv/library`) are cached
+- **Cache invalidation**: The cache is automatically refreshed when `renv.lock` changes
+- **Result**: Subsequent runs are significantly faster, saving GitHub Actions minutes
 
 ### Configuration
 
