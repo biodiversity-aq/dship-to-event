@@ -46,9 +46,13 @@ This repository includes a GitHub Action that automatically runs the transformat
 
 ### Performance Optimization
 
-The workflow uses caching to avoid recreating the R environment on every run:
-- **R packages**: Both the global renv cache (`~/.local/share/renv`) and project-specific library (`renv/library`) are cached
+The workflow has been optimized for fast execution:
+- **R packages caching**: Both the global renv cache (`~/.local/share/renv`) and project-specific library (`renv/library`) are cached
 - **Cache invalidation**: The cache is automatically refreshed when `renv.lock` changes
+- **Vectorized operations**: The R script uses optimized vectorized operations instead of row-by-row processing for geometry calculations
+- **Reduced redundancy**: Eliminated duplicate data processing and file writes
+- **System dependencies**: Optimized apt-get installation with minimal output and no upgrades
+- **Concurrency control**: Prevents multiple workflow runs from overlapping
 - **Result**: Subsequent runs are significantly faster, saving GitHub Actions minutes
 
 ### Configuration
