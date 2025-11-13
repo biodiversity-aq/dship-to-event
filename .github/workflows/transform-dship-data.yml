@@ -31,9 +31,13 @@ jobs:
       - name: Cache R packages
         uses: actions/cache@v4
         with:
-          path: ~/.local/share/renv
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-          restore-keys: ${{ runner.os }}-renv-
+          path: |
+            ~/.local/share/renv
+            renv/library
+          key: ${{ runner.os }}-renv-4.5.1-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-4.5.1-
+            ${{ runner.os }}-renv-
 
       - name: Restore R environment
         shell: Rscript {0}
