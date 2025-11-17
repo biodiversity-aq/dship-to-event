@@ -1,4 +1,4 @@
-eventID	eventType	device	device_operation_label	device_operation_subdevices	device_operation_devicetypes	start_date	end_date	start_time	end_time	lat_start	lon_start	lat_end	lon_end	start_depth_m	end_depth_m
+eventID	eventType	device	device_operation_label	device_operation_subdevices	device_operation_devicetypes	date_start	date_end	time_start	time_end	lat_start	lon_start	lat_end	lon_end	depth_start_m	depth_end_m
 PS149_1-1	station	CTD AWI-OZE (Piglet)	CTD_SBE9plus_287		CTD	2025-07-05	2025-07-05	07:01:11	07:29:16	79.4426	9.0517	79.4426	9.0541	126	122.1
 PS149_1-2	station	Hand Net	HN_PS		net	2025-07-05	2025-07-05	07:33:47	07:36:44	79.4426	9.0535	79.4425	9.0535	122.1	122.3
 PS149_1-3	station	Multinet Midi 5 Nets 55 ?m	mn_s5_ps_55		net	2025-07-05	2025-07-05	07:36:45	08:12:15	79.4425	9.0535	79.4426	9.0550	122.3	122.1
