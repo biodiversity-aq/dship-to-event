@@ -68,8 +68,8 @@ df_pairs <- df_actions %>%
     idx_start = if (use_profile) which(is_profile_start)[1] else which(is_station_start)[1],
     idx_end   = if (use_profile) which(is_profile_end)[1]   else which(is_station_end)[1],
     
-    start_time = event_time[idx_start],
-    end_time   = event_time[idx_end],
+    time_start = event_time[idx_start],
+    time_end   = event_time[idx_end],
     
     # coords from chosen rows
     lat_start  = format(round(latitude_deg[idx_start], 4), nsmall = 4),
@@ -78,8 +78,8 @@ df_pairs <- df_actions %>%
     lon_end    = format(round(longitude_deg[idx_end], 4), nsmall = 4),
     
     # depths from chosen rows
-    start_depth_m = depth_m[idx_start],
-    end_depth_m   = depth_m[idx_end],
+    depth_start_m = depth_m[idx_start],
+    depth_end_m   = depth_m[idx_end],
     
     # carry-through metadata from the chosen rows
     sensor_id = coalesce(sensor_id[idx_start], sensor_id[idx_end]),
@@ -90,7 +90,7 @@ df_pairs <- df_actions %>%
     .groups = "drop"
   ) %>%
   # ensure complete pairs
-  filter(!is.na(start_time), !is.na(end_time)) %>%
+  filter(!is.na(time_start), !is.na(time_end)) %>%
   mutate(
     eventID   = device_operation,
     eventType = if_else(use_profile, "profile", "station")
@@ -100,17 +100,17 @@ df_pairs <- df_actions %>%
 df_time <- df_pairs %>%
   # ensure POSIXct in UTC
   mutate(
-    start_timestamp = with_tz(start_time, "UTC"),
-    end_timestamp   = with_tz(end_time, "UTC"),
-    start_time = strftime(start_timestamp, "%H:%M:%S"),
-    end_time   = strftime(end_timestamp,   "%H:%M:%S"),
+    start_timestamp = with_tz(time_start, "UTC"),
+    end_timestamp   = with_tz(time_end, "UTC"),
+    time_start = strftime(start_timestamp, "%H:%M:%S"),
+    time_end   = strftime(end_timestamp,   "%H:%M:%S"),
     same_day   = as_date(start_timestamp) == as_date(end_timestamp),
-    start_date = format(as_date(start_timestamp), "%Y-%m-%d"),
-    end_date = format(as_date(end_timestamp), "%Y-%m-%d"),
+    date_start = format(as_date(start_timestamp), "%Y-%m-%d"),
+    date_end = format(as_date(end_timestamp), "%Y-%m-%d"),
     eventDate = if_else(
       same_day,
       # same day → date only
-      start_date,
+      date_start,
       # spans days → full datetime range with Z
       paste0(
         strftime(start_timestamp, "%Y-%m-%dT%H:%M:%SZ"),
@@ -123,13 +123,13 @@ df_time <- df_pairs %>%
       # same day → time range only
       # TODO: consider adding "Z" to times?
       paste0(
-        start_time, "/", end_time
+        time_start, "/", time_end
       ),
       # spans days → blank
       NA_character_
     )
   ) %>%
-  select(eventID, eventType, start_date, end_date, start_time, end_time, eventDate, eventTime)
+  select(eventID, eventType, date_start, date_end, time_start, time_end, eventDate, eventTime)
 
 # 3) Geometry: footprintWKT, centroid, uncertainty ----------------------------
 df_geometry_inputs <- df_pairs %>%
@@ -196,8 +196,8 @@ df_geometry <- df_geometry %>%
 df_depths <- df_pairs %>%
   transmute(
     eventID,
-    start_depth_m,
-    end_depth_m
+    depth_start_m,
+    depth_end_m
   )
 
 # 5) Metadata to keep ----------------------------------------------------------
@@ -217,12 +217,12 @@ events <- df_time %>%
   left_join(df_depths,   by = "eventID") %>%
   left_join(df_meta,     by = "eventID") %>%
   select(eventID, eventType, device, device_operation_label, device_operation_subdevices, device_operation_devicetypes, sensor_id,
-         start_date, end_date, start_time, end_time, lat_start, lon_start, lat_end, lon_end, start_depth_m, end_depth_m, eventDate, eventTime,
+         date_start, date_end, time_start, time_end, lat_start, lon_start, lat_end, lon_end, depth_start_m, depth_end_m, eventDate, eventTime,
          decimalLatitude, decimalLongitude, coordinateUncertaintyInMeters, footprintWKT) 
 
 station <- events %>% select(
   eventID, eventType, device, device_operation_label, device_operation_subdevices, device_operation_devicetypes, 
-  start_date, end_date, start_time, end_time, lat_start, lon_start, lat_end, lon_end, start_depth_m, end_depth_m)
+  date_start, date_end, time_start, time_end, lat_start, lon_start, lat_end, lon_end, depth_start_m, depth_end_m)
 
 # ---- Write out --------------------------------------------------------------
 write_tsv(station, here::here("data", "processed", "station.txt"), na = "")
